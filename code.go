@@ -1,7 +1,7 @@
 package morse
 
 // Code is the morse code lookup table
-var Code = map[rune]string{
+var Code = map[byte]string{
 	'A': ".-",
 	'B': "-...",
 	'C': "-.-.",

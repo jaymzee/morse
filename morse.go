@@ -2,7 +2,6 @@ package morse
 
 import (
 	"log"
-	"strings"
 	"time"
 )
 
@@ -21,9 +20,9 @@ type Output interface {
 }
 
 // Send transmits the message on the output
-func Send(out Output, message string) {
-	for _, ch := range strings.ToUpper(message) {
-		switch ch {
+func Send(out Output, bytes []byte) {
+	for _, b := range bytes {
+		switch b {
 		case ' ':
 			log.Println("SPC")
 			time.Sleep(tInterword)
@@ -31,7 +30,7 @@ func Send(out Output, message string) {
 			log.Println("STOP")
 			time.Sleep(tStop)
 		default:
-			sendChar(out, ch)
+			sendByte(out, b)
 		}
 	}
 }
@@ -43,9 +42,9 @@ func sendSymbol(out Output, t time.Duration) {
 	time.Sleep(tDit)
 }
 
-func sendChar(out Output, ch rune) {
-	if code, found := Code[ch]; found {
-		log.Printf("%c %q\n", ch, code)
+func sendByte(out Output, b byte) {
+	if code, found := Code[b]; found {
+		log.Printf("%c %q\n", b, code)
 		for _, sym := range code {
 			switch sym {
 			case '.':
@@ -58,5 +57,5 @@ func sendChar(out Output, ch rune) {
 		}
 		time.Sleep(tInterchar)
 	}
-	// characters that are not in Code are ignored
+	// bytes that are not in the map Code are ignored
 }

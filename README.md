@@ -1,8 +1,10 @@
 # morse code package for go
 this package can interface with any led, buzzer, etc. to send morse code
-messages.  You just need to provide a class with the methods:
-
+messages.  You just need to implement the interface:
+``` go
+interface {
     On()
     Off()
-
-to the morse.Send() function
+}
+```
+and provide it and the bytes to transmit to Send()

@@ -1,10 +1,18 @@
 # morse code package for go
 this package can interface with any led, buzzer, etc. to send morse code
-messages.  You just need to implement the interface:
+messages.  To add morse code capability to the output just implement the
+following methods:
+
 ``` go
-interface {
-    On()
-    Off()
+func (buzz *Buzzer) On() { ... }
+func (buzz *Buzzer) Off() { ... }
+func (buzz *Buzzer) Write(xs []byte) (int, error) {
+        return morse.Send(buzz, xs)
 }
 ```
-and provide it and the bytes to transmit to Send()
+
+The only characters accepted are A thru Z, a period and a space.
+Send a message to the output using the io package:
+```go
+io.WriteString(out, "HELLO WORLD.")
+```

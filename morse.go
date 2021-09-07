@@ -1,6 +1,7 @@
 package morse
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -13,15 +14,16 @@ const (
 	tStop      = 1000 * time.Millisecond
 )
 
-// Output the interface for any two state output such as led, buzzer, etc
+// Output is an interface for any two state output such as led, buzzer, etc
 type Output interface {
 	On()
 	Off()
 }
 
-// Send transmits the message on the output
-func Send(out Output, bytes []byte) {
-	for _, b := range bytes {
+// Send transmits the message on the output in morse code and returns
+// the number of bytes translated successfully.
+func Send(out Output, bytes []byte) (int, error) {
+	for n, b := range bytes {
 		switch b {
 		case ' ':
 			log.Println("SPC")
@@ -30,9 +32,12 @@ func Send(out Output, bytes []byte) {
 			log.Println("STOP")
 			time.Sleep(tStop)
 		default:
-			sendByte(out, b)
+			if err := sendByte(out, b); err != nil {
+				return n, err
+			}
 		}
 	}
+	return len(bytes), nil
 }
 
 func sendSymbol(out Output, t time.Duration) {
@@ -42,7 +47,7 @@ func sendSymbol(out Output, t time.Duration) {
 	time.Sleep(tDit)
 }
 
-func sendByte(out Output, b byte) {
+func sendByte(out Output, b byte) error {
 	if code, found := Code[b]; found {
 		log.Printf("%c %q\n", b, code)
 		for _, sym := range code {
@@ -52,10 +57,11 @@ func sendByte(out Output, b byte) {
 			case '-':
 				sendSymbol(out, tDah)
 			default:
-				panic("invalid character in morse code table")
+				panic("only . and - allowed in morse code table!")
 			}
 		}
 		time.Sleep(tInterchar)
+		return nil
 	}
-	// bytes that are not in the map Code are ignored
+	return fmt.Errorf("cannot translate byte %#02x to morse code", b)
 }

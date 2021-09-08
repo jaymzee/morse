@@ -12,7 +12,8 @@ func (buzz *Buzzer) Write(xs []byte) (int, error) {
 ```
 
 The only characters accepted are A thru Z, a period and a space.
-Send a message to the output using the io package:
+Send a message to the output using io or fmt:
 ```go
 io.WriteString(out, "HELLO WORLD.")
+fmt.Fprint(out, "HELLO WORLD.")
 ```

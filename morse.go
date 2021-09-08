@@ -6,33 +6,48 @@ import (
 	"time"
 )
 
-const (
-	tDit       = 100 * time.Millisecond
-	tDah       = 300 * time.Millisecond
-	tInterchar = 200 * time.Millisecond
-	tInterword = 400 * time.Millisecond
-	tStop      = 1000 * time.Millisecond
-)
-
 // Output is an interface for any two state output such as led, buzzer, etc
 type Output interface {
 	On()
 	Off()
 }
 
-// Send transmits the message on the output in morse code and returns
-// the number of bytes translated successfully.
-func Send(out Output, bytes []byte) (int, error) {
+// Sender sends morse code to an Output
+type Sender struct {
+	Out       Output
+	Dit       time.Duration
+	Dah       time.Duration
+	Interchar time.Duration
+	Interword time.Duration
+	Stop      time.Duration
+}
+
+// NewSender returns a new Sender
+func NewSender(out Output) *Sender {
+	return &Sender{
+		Out:       out,
+		Dit:       100 * time.Millisecond,
+		Dah:       300 * time.Millisecond,
+		Interchar: 200 * time.Millisecond,
+		Interword: 400 * time.Millisecond,
+		Stop:      1000 * time.Millisecond,
+	}
+}
+
+// Write implements io.Writer
+// and transmits the message on the output in morse code and returns
+// the number of bytes sent successfully.
+func (s *Sender) Write(bytes []byte) (int, error) {
 	for n, b := range bytes {
 		switch b {
 		case ' ':
 			log.Println("SPC")
-			time.Sleep(tInterword)
+			time.Sleep(s.Interword)
 		case '.':
 			log.Println("STOP")
-			time.Sleep(tStop)
+			time.Sleep(s.Stop)
 		default:
-			if err := sendByte(out, b); err != nil {
+			if err := s.WriteByte(b); err != nil {
 				return n, err
 			}
 		}
@@ -40,28 +55,29 @@ func Send(out Output, bytes []byte) (int, error) {
 	return len(bytes), nil
 }
 
-func sendSymbol(out Output, t time.Duration) {
-	out.On()
-	time.Sleep(t)
-	out.Off()
-	time.Sleep(tDit)
-}
-
-func sendByte(out Output, b byte) error {
+// WriteByte transmits the character on the output in morse code and returns
+func (s *Sender) WriteByte(b byte) error {
 	if code, found := Code[b]; found {
 		log.Printf("%c %q\n", b, code)
 		for _, sym := range code {
 			switch sym {
 			case '.':
-				sendSymbol(out, tDit)
+				s.sendSymbol(s.Dit)
 			case '-':
-				sendSymbol(out, tDah)
+				s.sendSymbol(s.Dah)
 			default:
 				panic("only . and - allowed in morse code table!")
 			}
 		}
-		time.Sleep(tInterchar)
+		time.Sleep(s.Interchar)
 		return nil
 	}
 	return fmt.Errorf("cannot translate byte %#02x to morse code", b)
+}
+
+func (s *Sender) sendSymbol(t time.Duration) {
+	s.Out.On()
+	time.Sleep(t)
+	s.Out.Off()
+	time.Sleep(s.Dit)
 }

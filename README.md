@@ -6,14 +6,14 @@ following methods:
 ``` go
 func (buzz *Buzzer) On() { ... }
 func (buzz *Buzzer) Off() { ... }
-func (buzz *Buzzer) Write(xs []byte) (int, error) {
-        return morse.Send(buzz, xs)
-}
 ```
 
-The only characters accepted are A thru Z, a period and a space.
+The only characters accepted are [A-Z0-9. ].
 Send a message to the output using io or fmt:
 ```go
-io.WriteString(out, "HELLO WORLD.")
-fmt.Fprint(out, "HELLO WORLD.")
+// create a Sender
+sender := morse.NewSender(led)
+// pass the Sender to anything that accepts a Writer
+io.WriteString(sender, "HELLO WORLD.")
+fmt.Fprint(sender, "HELLO WORLD.")
 ```
